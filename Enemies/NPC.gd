@@ -68,20 +68,39 @@ func _physics_process(delta):
 			sprite.flip_h = velocity.x < 0
 		
 		GO_TO_ASSIGNMENT:
-			if get_parent().global_position != spawnLocation:
-				var path = nav_2d.get_simple_path(self.global_position, get_parent().position)
-				var my_location = self.global_position
-				var its_location = get_parent().position
-				#self.path = path
-				var start_point = self.position
-				for i in range(path.size()):
-					var direction = start_point.direction_to(path[0])
-					velocity = velocity.move_toward(direction * MAX_SPEED, ACCELERATION * delta)
-					start_point = path[0]
-					path.remove[0]
-					sprite.flip_h = velocity.x < 0
-			else:
-				state = IDLE
+			#if get_parent().global_position != spawnLocation:
+				# Calculate the movement distance for this frame
+			var speed = 50
+			var path : = PoolVector2Array()
+			var distance_to_walk = speed * delta
+			var two = Vector2(22,22)
+			path = nav_2d.get_simple_path(self.position, two)
+	# Move the player along the path until he has run out of movement or the path ends.
+			while distance_to_walk > 0 and path.size() > 0:
+				var distance_to_next_point = position.distance_to(path[0])
+				if distance_to_walk <= distance_to_next_point:
+			# The player does not have enough movement left to get to the next point.
+					position += position.direction_to(path[0]) * distance_to_walk
+				else:
+			# The player get to the next point
+					position = path[0]
+					path.remove(0)
+		# Update the distance to walk
+				distance_to_walk -= distance_to_next_point
+#				var one = Vector2(11,11)
+#				var two = Vector2(22,22)
+#				var path = nav_2d.get_simple_path(one, two)
+#				nav_2d.call_deferred("get_simple_path")
+#				var current_point = 0
+#				print(global_position.distance_to(path[current_point]))
+#				while global_position != two:
+#					while global_position != path[current_point]:
+#						var distance = global_position.direction_to(path[current_point])
+#						velocity = velocity.move_toward(distance * MAX_SPEED, ACCELERATION * delta)
+##						sprite.flip_h = velocity.x < 0
+#					current_point += 1
+			
+			state = IDLE
 			
 	if softCollision.is_colliding():
 		velocity += softCollision.get_push_vector()* delta * 400

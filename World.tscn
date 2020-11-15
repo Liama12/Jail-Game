@@ -365,7 +365,7 @@ position = Vector2( 88.4651, -184.082 )
 script = ExtResource( 9 )
 
 [node name="NPC" parent="YSort/BedAssignment" instance=ExtResource( 7 )]
-position = Vector2( -13.6851, 412.477 )
+position = Vector2( -12.1851, 340.977 )
 
 [node name="Unassigned" type="YSort" parent="YSort"]
 
