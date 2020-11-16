@@ -6,6 +6,7 @@ export var ACCELERATION = 300
 export var MAX_SPEED = 50
 export var FRICTION = 200
 export var WANDER_RANGE = 4
+export var pursue_player = false
 
 enum {
 	IDLE,
@@ -41,14 +42,16 @@ func _physics_process(delta):
 	match state:
 		IDLE:
 			velocity = velocity.move_toward(Vector2.ZERO, 200 * delta)
-			seek_player()
+			if pursue_player == true:
+				seek_player()
 			print("I am in IDLE")
 			if wanderController.get_time_left() == 0:
 				state = pick_new_state([IDLE, WANDER])
 				wanderController.start_wander_timer(rand_range(1, 3))
 
 		WANDER: 
-			seek_player()
+			if pursue_player == true:
+				seek_player()
 			if wanderController.get_time_left() == 0:
 				state = pick_new_state([IDLE, WANDER])
 				wanderController.start_wander_timer(rand_range(1, 3))
@@ -71,12 +74,9 @@ func _physics_process(delta):
 		
 		GO_TO_ASSIGNMENT:
 			if finished == false:
-				seek_player()
 				assignmentPosition = get_parent().position
 				var goal = assignmentPosition
 				path = nav.get_simple_path(self.global_position, goal, false)
-				line.points = PoolVector2Array(path)
-				line.show()
 				if global_position == path[point]:
 					point += 1
 				var direction = global_position.direction_to(path[point])
