@@ -113,7 +113,6 @@ shape = SubResource( 15 )
 max_health = 2
 
 [node name="PlayerDetectionZone" parent="." instance=ExtResource( 4 )]
-visible = false
 
 [node name="CollisionShape2D" parent="PlayerDetectionZone" index="0"]
 modulate = Color( 0.827451, 0.572549, 0.572549, 0.352941 )
@@ -129,7 +128,6 @@ position = Vector2( 0.334099, -14.3657 )
 shape = SubResource( 17 )
 
 [node name="SoftCollision" parent="." instance=ExtResource( 5 )]
-visible = false
 
 [node name="CollisionShape2D" parent="SoftCollision" index="0"]
 position = Vector2( 0, -1.64861 )

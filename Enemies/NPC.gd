@@ -16,8 +16,9 @@ enum {
 
 var velocity = Vector2.ZERO
 var knockback = Vector2.ZERO
-#var path = PoolVector2Array()
-var state = IDLE
+var path = PoolVector2Array()
+var state = null
+var point = 0
 onready var sprite = $AnimatedSprite
 onready var stats = $Stats
 onready var playerDetectionZone = $PlayerDetectionZone
@@ -26,15 +27,15 @@ onready var softCollision = $SoftCollision
 onready var wanderController = $WanderController
 onready var spawnLocation = null
 onready var triggerOnce = 0
-onready var nav_2d : Navigation2D = $"../../../Navigation2D"
-onready var line_2d : Line2D = $"../../../Line2D"
-
-
+onready var nav : Navigation2D = $"../../../Navigation2D"
+onready var line : Line2D = $"../../../Line2D"
+onready var assignmentPosition = null
+onready var assignCollision = $AssignCollision
 
 func _physics_process(delta):
 	knockback = knockback.move_toward(Vector2.ZERO, 200 * delta)
 	knockback = move_and_slide(knockback)
-	while triggerOnce == 0:
+	if triggerOnce == 0:
 		trigger_once()
 	match state:
 		IDLE:
@@ -68,47 +69,25 @@ func _physics_process(delta):
 			sprite.flip_h = velocity.x < 0
 		
 		GO_TO_ASSIGNMENT:
-			#if get_parent().global_position != spawnLocation:
-				# Calculate the movement distance for this frame
-			var speed = 50
-			var path : = PoolVector2Array()
-			var distance_to_walk = speed * delta
-			var two = Vector2(22,22)
-			path = nav_2d.get_simple_path(self.position, two)
-	# Move the player along the path until he has run out of movement or the path ends.
-			while distance_to_walk > 0 and path.size() > 0:
-				var distance_to_next_point = position.distance_to(path[0])
-				if distance_to_walk <= distance_to_next_point:
-			# The player does not have enough movement left to get to the next point.
-					position += position.direction_to(path[0]) * distance_to_walk
-				else:
-			# The player get to the next point
-					position = path[0]
-					path.remove(0)
-		# Update the distance to walk
-				distance_to_walk -= distance_to_next_point
-#				var one = Vector2(11,11)
-#				var two = Vector2(22,22)
-#				var path = nav_2d.get_simple_path(one, two)
-#				nav_2d.call_deferred("get_simple_path")
-#				var current_point = 0
-#				print(global_position.distance_to(path[current_point]))
-#				while global_position != two:
-#					while global_position != path[current_point]:
-#						var distance = global_position.direction_to(path[current_point])
-#						velocity = velocity.move_toward(distance * MAX_SPEED, ACCELERATION * delta)
-##						sprite.flip_h = velocity.x < 0
-#					current_point += 1
-			
-			state = IDLE
-			
+			assignmentPosition = get_parent().position
+			var goal = assignmentPosition
+			path = nav.get_simple_path(self.global_position, goal, false)
+			line.points = PoolVector2Array(path)
+			line.show()
+			if global_position == path[point]:
+				point += 1
+			move_and_slide((path[point] - global_position).normalized() * MAX_SPEED)
+			if goal.x / position.x > 0.8 && goal.y / position.y > 0.8:
+				wanderController.start_position == global_position
+				state = pick_new_state([IDLE, WANDER]) 
+				wanderController.start_wander_timer(rand_range(1, 3))
 	if softCollision.is_colliding():
 		velocity += softCollision.get_push_vector()* delta * 400
 	velocity = move_and_slide(velocity)
-	
 func trigger_once():
 	spawnLocation = self.global_position
 	triggerOnce = 1
+	state = GO_TO_ASSIGNMENT
 
 func seek_player():
 	if playerDetectionZone.can_see_player():
@@ -132,8 +111,4 @@ func _on_Stats_no_health():
 
 func _on_BedAssignment_tree_entered():
 	state = GO_TO_ASSIGNMENT
-#func set_path(value : PoolVector2Array) -> void:
-#	path = value
-#	if value.size() == 0:
-#		return
-#	set_process(true)
+
