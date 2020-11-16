@@ -19,6 +19,7 @@ var knockback = Vector2.ZERO
 var path = PoolVector2Array()
 var state = null
 var point = 0
+var finished = false
 onready var sprite = $AnimatedSprite
 onready var stats = $Stats
 onready var playerDetectionZone = $PlayerDetectionZone
@@ -41,24 +42,24 @@ func _physics_process(delta):
 		IDLE:
 			velocity = velocity.move_toward(Vector2.ZERO, 200 * delta)
 			seek_player()
-			
+			print("I am in IDLE")
 			if wanderController.get_time_left() == 0:
 				state = pick_new_state([IDLE, WANDER])
 				wanderController.start_wander_timer(rand_range(1, 3))
-			
+
 		WANDER: 
 			seek_player()
 			if wanderController.get_time_left() == 0:
 				state = pick_new_state([IDLE, WANDER])
 				wanderController.start_wander_timer(rand_range(1, 3))
-			
+
 			var direction = global_position.direction_to(wanderController.target_position)
 			velocity = velocity.move_toward(direction * MAX_SPEED, ACCELERATION * delta)
 			sprite.flip_h = velocity.x < 0
 			if global_position.distance_to(wanderController.target_position) <= WANDER_RANGE:
 				state = pick_new_state([IDLE, WANDER]) 
 				wanderController.start_wander_timer(rand_range(1, 3))
-			
+
 		CHASE:
 			var player = playerDetectionZone.player
 			if player != null:
@@ -69,18 +70,24 @@ func _physics_process(delta):
 			sprite.flip_h = velocity.x < 0
 		
 		GO_TO_ASSIGNMENT:
-			assignmentPosition = get_parent().position
-			var goal = assignmentPosition
-			path = nav.get_simple_path(self.global_position, goal, false)
-			line.points = PoolVector2Array(path)
-			line.show()
-			if global_position == path[point]:
-				point += 1
-			move_and_slide((path[point] - global_position).normalized() * MAX_SPEED)
-			if goal.x / position.x > 0.8 && goal.y / position.y > 0.8:
-				wanderController.start_position == global_position
-				state = pick_new_state([IDLE, WANDER]) 
-				wanderController.start_wander_timer(rand_range(1, 3))
+			if finished == false:
+				seek_player()
+				assignmentPosition = get_parent().position
+				var goal = assignmentPosition
+				path = nav.get_simple_path(self.global_position, goal, false)
+				line.points = PoolVector2Array(path)
+				line.show()
+				if global_position == path[point]:
+					point += 1
+				var direction = global_position.direction_to(path[point])
+				velocity = velocity.move_toward(direction * MAX_SPEED, ACCELERATION * delta)
+				#move_and_slide((path[point] - global_position).normalized() * MAX_SPEED)
+				if goal.x / position.x > 0.8 && goal.y / position.y > 0.8:
+					finished = true
+					velocity = Vector2.ZERO
+					wanderController.target_position = global_position
+					wanderController.start_position = global_position
+					state = IDLE
 	if softCollision.is_colliding():
 		velocity += softCollision.get_push_vector()* delta * 400
 	velocity = move_and_slide(velocity)
