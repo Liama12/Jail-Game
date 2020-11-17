@@ -44,7 +44,6 @@ func _physics_process(delta):
 			velocity = velocity.move_toward(Vector2.ZERO, 200 * delta)
 			if pursue_player == true:
 				seek_player()
-			print("I am in IDLE")
 			if wanderController.get_time_left() == 0:
 				state = pick_new_state([IDLE, WANDER])
 				wanderController.start_wander_timer(rand_range(1, 3))

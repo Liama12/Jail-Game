@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://Interactables/Weed.gd" type="Script" id=1]
+[ext_resource path="res://World/Bush.png" type="Texture" id=2]
+
+[node name="Weed" type="StaticBody2D"]
+script = ExtResource( 1 )
+
+[node name="Sprite" type="Sprite" parent="."]
+position = Vector2( -0.0265865, 0.0442982 )
+scale = Vector2( 0.242066, 0.242066 )
+texture = ExtResource( 2 )
